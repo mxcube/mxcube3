@@ -10,11 +10,11 @@ MXCUBE_ROOT = os.path.abspath(
 
 sys.path.insert(0, MXCUBE_ROOT)
 
-os.environ["CUSTOM_HARDWARE_OBJECTS_PATH"] = os.path.join(
-    MXCUBE_ROOT, "HardwareRepository/HardwareObjects"
-)
+#os.environ["CUSTOM_HARDWARE_OBJECTS_PATH"] = os.path.join(
+#    MXCUBE_ROOT, "HardwareRepository/HardwareObjects"
+#)
 
-sys.path.insert(0, os.environ["CUSTOM_HARDWARE_OBJECTS_PATH"])
+#sys.path.insert(0, os.environ["CUSTOM_HARDWARE_OBJECTS_PATH"])
 
 if __name__ == "__main__":
     db = redis.Redis()

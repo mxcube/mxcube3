@@ -28,7 +28,7 @@ ABSTRACT_NSTATE_TO_VALUE = {
     "OPEN": 1,
     "IN": 1,
     "UNKNOWN": 2,
-    "UDEFINED": 2
+    "UDEFINED": 2,
 }
 
 
@@ -73,3 +73,7 @@ class BEAMSTOP_STATE(object):
     TO_INOUT_STATE = {"in": INOUT_STATE.IN, "out": INOUT_STATE.OUT}
 
     STATE_TO_MSG_STR = {INOUT_STATE.OUT: "OUT", INOUT_STATE.IN: "IN"}
+
+
+class ABSTRACT_NSTATE(object):
+    TO_INOUT_STATE = {}

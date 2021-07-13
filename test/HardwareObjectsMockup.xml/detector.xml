@@ -1,0 +1,24 @@
+<equipment class = "DetectorMockup">
+  <username>detector</username>
+  <object hwrid="/dtox" role="detector_distance"/>
+  <tempThreshold>33.5</tempThreshold>
+  <humidityThreshold>20.0</humidityThreshold>
+  <tolerance>0.2</tolerance>
+  <type>pilatus</type>
+  <model>16M</model>
+  <manufacturer>DECTRIS</manufacturer>
+  <px>0.075</px>
+  <py>0.075</py>
+  <width>4150</width>
+  <height>4271</height>
+  <hasShutterless>True</hasShutterless>
+  <fileSuffix>cbf</fileSuffix>
+
+  <beam>
+    <ax>0.00002</ax>
+    <ay>-0.0036</ay>
+    <bx>215.700</bx>
+    <by>213.169</by>
+  </beam>
+
+</equipment>

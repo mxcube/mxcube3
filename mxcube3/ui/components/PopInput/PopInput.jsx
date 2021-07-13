@@ -142,8 +142,8 @@ export default class PopInput extends React.Component {
       onSubmit: this.submit,
       onCancel: this.cancel,
       onSave: this.save,
-      precision: this.props.data.precision,
-      step: this.props.data.step };
+      precision: this.precision,
+      step: this.props.step };
 
     let input = (
       <DefaultInput
@@ -223,8 +223,8 @@ export default class PopInput extends React.Component {
 
     let value = this.props.data.value ? parseFloat(this.props.data.value) : '-';
 
-    if (value !== '-' && this.props.data.precision) {
-      value = value.toFixed(parseInt(this.props.data.precision, 10));
+    if (value !== '-' && this.props.precision) {
+      value = value.toFixed(parseInt(this.props.precision, 10));
     }
 
     return (
@@ -271,6 +271,8 @@ PopInput.defaultProps = {
   className: '',
   dataType: 'number',
   inputSize: '80px',
+  precision: 1,
+  step: 0.1,
   name: '',
   title: '',
   suffix: '',

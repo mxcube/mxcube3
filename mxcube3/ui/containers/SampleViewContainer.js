@@ -15,11 +15,23 @@ import BeamlineSetupContainer from './BeamlineSetupContainer';
 import SampleQueueContainer from './SampleQueueContainer';
 import { QUEUE_RUNNING } from '../constants';
 
+import {
+  sendSetAttribute,
+  sendAbortCurrentAction,
+  setBeamlineAttribute
+} from '../actions/beamline';
+
 
 class SampleViewContainer extends Component {
   render() {
+    const uiproperties = this.props.uiproperties;
+
+    if (!uiproperties.hasOwnProperty('sample_view')) {
+      return null;
+    }
+
     const { sourceScale, imageRatio, motorSteps } = this.props.sampleViewState;
-    const { sendMotorPosition, setStepSize, sendStopMotor } = this.props.sampleViewActions;
+    const { setStepSize } = this.props.sampleViewActions;
     const { sampleID } = this.props.current;
     const [points, lines, grids, twoDPoints] = [{}, {}, {}, {}];
     const selectedGrids = [];
@@ -67,13 +79,14 @@ class SampleViewContainer extends Component {
             >
               {apertureControl}
               <MotorControl
-                save={sendMotorPosition}
+                save={this.props.sendSetAttribute}
                 saveStep={setStepSize}
-                motors={this.props.motors}
+                uiproperties={uiproperties.sample_view}
+                attributes={this.props.attributes}
                 motorsDisabled={this.props.motorInputDisable
                                    || this.props.queueState === QUEUE_RUNNING}
                 steps={motorSteps}
-                stop={sendStopMotor}
+                stop={this.props.sendAbortCurrentAction}
                 sampleViewActions={this.props.sampleViewActions}
                 sampleViewState={this.props.sampleViewState}
               />
@@ -98,7 +111,8 @@ class SampleViewContainer extends Component {
                 generalActions={this.props.generalActions}
                 sampleActions={this.props.sampleViewActions}
                 {...this.props.sampleViewState}
-                motors={this.props.motors}
+                uiproperties={uiproperties.sample_view}
+                attributes={this.props.attributes}
                 steps={motorSteps}
                 imageRatio={imageRatio * sourceScale}
                 contextMenuVisible={this.props.contextMenu.show}
@@ -114,6 +128,9 @@ class SampleViewContainer extends Component {
                 sampleList={this.props.sampleList}
                 proposal={this.props.proposal}
                 busy={this.props.queueState === QUEUE_RUNNING}
+                sendSetAttribute={this.props.sendSetAttribute}
+                sendAbortCurrentAction={this.props.sendAbortCurrentAction}
+                setBeamlineAttribute={this.props.setBeamlineAttribute}
               />
             </div>
             <div className="col-xs-4" style={{ display: 'flex' }}>
@@ -136,7 +153,7 @@ function mapStateToProps(state) {
     sampleViewState: state.sampleview,
     contextMenu: state.contextMenu,
     motorInputDisable: state.beamline.motorInputDisable,
-    motors: state.beamline.motors,
+    attributes: state.beamline.attributes,
     availableMethods: state.beamline.availableMethods,
     defaultParameters: state.taskForm.defaultParameters,
     shapes: state.shapes.shapes,
@@ -144,7 +161,8 @@ function mapStateToProps(state) {
     cellCounting: state.taskForm.defaultParameters.mesh.cell_counting,
     cellSpacing: state.taskForm.defaultParameters.mesh.cell_spacing,
     proposal: state.login.selectedProposal,
-    remoteAccess: state.remoteAccess
+    remoteAccess: state.remoteAccess,
+    uiproperties: state.uiproperties,
   };
 }
 
@@ -154,6 +172,9 @@ function mapDispatchToProps(dispatch) {
     updateTask: bindActionCreators(updateTask, dispatch),
     showForm: bindActionCreators(showTaskForm, dispatch),
     generalActions: bindActionCreators(GeneralActions, dispatch),
+    sendSetAttribute: bindActionCreators(sendSetAttribute, dispatch),
+    sendAbortCurrentAction: bindActionCreators(sendAbortCurrentAction, dispatch),
+    setBeamlineAttribute: bindActionCreators(setBeamlineAttribute, dispatch)
   };
 }
 

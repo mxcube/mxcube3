@@ -16,7 +16,7 @@ from mxcube3.core import limsutils
 from abstract.AbstractSampleChanger import SampleChangerState
 from mxcubecore.BaseHardwareObjects import HardwareObjectState
 
-from mxcube3.core.beamline_adapter import BeamlineAdapter
+from mxcube3.core.adapter.beamline_adapter import BeamlineAdapter
 from mxcube3.core.qutils import (
     READY,
     RUNNING,
@@ -34,7 +34,7 @@ from mxcube3.core.utils import to_camel
 
 
 def last_queue_node():
-    node = mxcube.mxcubecore.beamline.queue_manager._current_queue_entries[-1].get_data_model()
+    node = mxcube.mxcubecore.beamline_ho.queue_manager._current_queue_entries[-1].get_data_model()
 
     # Reference collections are orphans, the node we want is the
     # characterisation not the reference collection itself
@@ -166,10 +166,10 @@ def loaded_sample_changed(sample):
     try:
         sampleID = address
 
-        if mxcube.mxcubecore.beamline.sample_changer.has_loaded_sample():
+        if mxcube.mxcubecore.beamline_ho.sample_changer.has_loaded_sample():
             scutils.set_current_sample(sampleID)
         else:
-            sample = mxcube.mxcubecore.beamline.sample_changer.get_loaded_sample()
+            sample = mxcube.mxcubecore.beamline_ho.sample_changer.get_loaded_sample()
 
             if sample:
                 address = sample.get_address()
@@ -233,7 +233,7 @@ def get_task_state(entry):
     lims_id = mxcube.NODE_ID_TO_LIMS_ID.get(node_id, "null")
 
     try:
-        limsres = mxcube.mxcubecore.beamline.lims.lims_rest.get_dc(lims_id)
+        limsres = mxcube.mxcubecore.beamline_ho.lims.lims_rest.get_dc(lims_id)
     except BaseException:
         limsres = {}
 
@@ -264,7 +264,7 @@ def update_task_result(entry):
     lims_id = mxcube.NODE_ID_TO_LIMS_ID.get(node_id, "null")
 
     try:
-        limsres = mxcube.mxcubecore.beamline.lims_rest.get_dc(lims_id)
+        limsres = mxcube.mxcubecore.beamline_ho.lims_rest.get_dc(lims_id)
     except BaseException:
         limsres = {}
 
@@ -408,7 +408,7 @@ def collect_oscillation_failed(
 
     if not qutils.is_interleaved(node["node"]):
         try:
-            mxcube.mxcubecore.beamline.lims_rest.get_dc(lims_id)
+            mxcube.mxcubecore.beamline_ho.lims_rest.get_dc(lims_id)
         except BaseException:
             pass
 
@@ -598,10 +598,10 @@ def xrf_task_progress(taskId, progress):
 def send_shapes(update_positions=False, movable={}):
 
     shape_dict = {}
-    for shape in mxcube.mxcubecore.beamline.sample_view.get_shapes():
+    for shape in mxcube.mxcubecore.beamline_ho.sample_view.get_shapes():
         if update_positions:
             shape.update_position(
-                mxcube.mxcubecore.beamline.diffractometer.motor_positions_to_screen
+                mxcube.mxcubecore.beamline_ho.diffractometer.motor_positions_to_screen
             )
 
         s = to_camel(shape.as_dict())
@@ -625,7 +625,7 @@ def motor_state_callback(movable, sender=None, **kw):
 
         # Update the pixels per mm if it was the zoom motor that moved
         if movable["name"] == "zoom":
-            ppm = mxcube.mxcubecore.beamline.diffractometer.get_pixels_per_mm()
+            ppm = mxcube.mxcubecore.beamline_ho.diffractometer.get_pixels_per_mm()
             server.emit(
                 "update_pixels_per_mm", {"pixelsPerMm": ppm}, namespace="/hwr"
             )
@@ -635,7 +635,7 @@ def motor_state_callback(movable, sender=None, **kw):
 
 def beam_changed(*args, **kwargs):
 
-    beam_info = mxcube.mxcubecore.beamline.beam
+    beam_info = mxcube.mxcubecore.beamline_ho.beam
 
     if beam_info is None:
         logging.getLogger("HWR").error("beamInfo is not defined")
@@ -692,8 +692,8 @@ def beamline_action_failed(name):
 
 
 def safety_shutter_state_changed(values):
-    ho = BeamlineAdapter(mxcube.mxcubecore.beamline).get_object_by_role("safety_shutter")
-    data = ho.dict_repr()
+    ho = BeamlineAdapter(mxcube.mxcubecore.beamline_ho).get_object_by_role("safety_shutter")
+    data = ho.dict()
     try:
         server.emit("beamline_value_change", data, namespace="/hwr")
     except Exception:

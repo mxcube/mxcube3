@@ -26,7 +26,7 @@ export default class DefaultInput extends React.Component {
           </Button>
         </ButtonToolbar>
       </div>
-     );
+    );
   }
 }
 

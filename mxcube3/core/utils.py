@@ -65,8 +65,8 @@ def get_light_state_and_intensity():
     ret = dict()
 
     for light in ("BackLight", "FrontLight"):
-        hwobj = mxcube.mxcubecore.beamline.diffractometer.get_object_by_role(light)
-        hwobj_switch = mxcube.mxcubecore.beamline.diffractometer.get_object_by_role(
+        hwobj = mxcube.mxcubecore.beamline_ho.diffractometer.get_object_by_role(light)
+        hwobj_switch = mxcube.mxcubecore.beamline_ho.diffractometer.get_object_by_role(
             light + "Switch"
         )
         switch_state = 1 if hwobj_switch.get_value().name == "IN" else 0
@@ -96,7 +96,7 @@ def get_light_limits():
     for light in ("BackLight", "FrontLight"):
         item_role = light.lower()
 
-        hwobj = mxcube.mxcubecore.beamline.diffractometer.get_object_by_role(item_role)
+        hwobj = mxcube.mxcubecore.beamline_ho.diffractometer.get_object_by_role(item_role)
 
         ret.update({light: {"limits": hwobj.get_limits()}})
 
@@ -110,7 +110,7 @@ def get_movable_state_and_position(item_name):
             # this returns more than needed, but it doesn't
             # matter
             return get_light_state_and_intensity()
-        hwobj = mxcube.mxcubecore.beamline.diffractometer.get_object_by_role(item_name)
+        hwobj = mxcube.mxcubecore.beamline_ho.diffractometer.get_object_by_role(item_name)
 
         if hwobj is None:
             msg = (
@@ -155,7 +155,7 @@ def get_movable_limits(item_name):
             # matter
             return get_light_limits()
 
-        hwobj = mxcube.mxcubecore.beamline.diffractometer.get_object_by_role(item_role)
+        hwobj = mxcube.mxcubecore.beamline_ho.diffractometer.get_object_by_role(item_role)
 
         if hwobj is None:
             logging.getLogger("MX3.HWR").error(
@@ -180,7 +180,7 @@ def get_centring_motors():
 
     if not _centring_motors_memo:
         _centring_motors_memo = list(
-            mxcube.mxcubecore.beamline.diffractometer.get_positions().keys()
+            mxcube.mxcubecore.beamline_ho.diffractometer.get_positions().keys()
         )
 
         # Adding the two pseudo motors for sample alignment in the microscope
@@ -210,10 +210,11 @@ def get_centring_motors_info():
 
             if motor_limits and motor_limits[name]["limits"] is not None:
                 ret[name].update(motor_limits[name])
-        except:
-            logging.getLogger("MX3.HWR").exception(
-                "[UTILS.GET_CENTRING_MOTORS_INFO]: Could not get %s" %name
-            )
+        except KeyError:
+            pass
+            # logging.getLogger("MX3.HWR").exception(
+            #     "[UTILS.GET_CENTRING_MOTORS_INFO]: Could not get %s" %name
+            # )
 
     return ret
 
@@ -227,7 +228,7 @@ def _snapshot_received(data):
 
 
 def _do_take_snapshot(filename, bw=False):
-    mxcube.mxcubecore.beamline.sample_view.save_snapshot(
+    mxcube.mxcubecore.beamline_ho.sample_view.save_snapshot(
         filename, overlay=False, bw=bw
     )
 
@@ -249,7 +250,7 @@ def _do_take_snapshot(filename, bw=False):
 
 
 def save_snapshot(self, filename, bw=False):
-    mxcube.mxcubecore.beamline.sample_view.save_snapshot(
+    mxcube.mxcubecore.beamline_ho.sample_view.save_snapshot(
         filename, overlay=Flase, bw=bw
     )
     #_do_take_snapshot(filename, bw)
@@ -369,7 +370,7 @@ def send_mail(_from, to, subject, content):
 
 
 def send_feedback(sender_data):
-    bl_name = mxcube.mxcubecore.beamline.session.beamline_name
+    bl_name = mxcube.mxcubecore.beamline_ho.session.beamline_name
     local_user = sender_data.get("LOGGED_IN_USER", "")
 
     if not bl_name:
@@ -384,17 +385,17 @@ def send_feedback(sender_data):
         except (KeyError):
             local_user = "unknown_user"
 
-    _from = mxcube.mxcubecore.beamline.session.get_property("from_email", "")
+    _from = mxcube.mxcubecore.beamline_ho.session.get_property("from_email", "")
 
     if not _from:
         _from = "%s@%s" % (
             local_user,
-            mxcube.mxcubecore.beamline.session.get_property("email_extension", ""),
+            mxcube.mxcubecore.beamline_ho.session.get_property("email_extension", ""),
         )
 
     # Sender information provided by user
     _sender = sender_data.get("sender", "")
-    to = mxcube.mxcubecore.beamline.session.get_property("feedback_email", "") + ",%s" % _sender
+    to = mxcube.mxcubecore.beamline_ho.session.get_property("feedback_email", "") + ",%s" % _sender
     subject = "[MX3 FEEDBACK] %s (%s) on %s" % (local_user, _sender, bl_name)
     content = sender_data.get("content", "")
 

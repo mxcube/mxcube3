@@ -12,9 +12,9 @@ export default class TwoAxisTranslationControl extends React.Component {
   }
 
   stepChange(name, step, operator) {
-    const value = this.props.motors[name].position;
+    const value = this.props.motors[name].value;
     const newValue = value + step * operator;
-    this.props.save(name, newValue);
+    this.props.save(this.props.motors[name].attribute, newValue);
   }
 
   renderMotorSettings() {
@@ -22,13 +22,13 @@ export default class TwoAxisTranslationControl extends React.Component {
               <div>
                 <MotorInput
                   save={this.props.save}
-                  value={this.props.motors.sample_vertical.position}
+                  value={this.props.motors.sample_vertical.value}
                   saveStep={this.props.saveStep}
-                  step={this.props.steps.sample_verticalStep}
-                  motorName="sample_vertical"
-                  label="Vertical"
-                  suffix="mm"
-                  decimalPoints="3"
+                  step={this.props.motors.sample_vertical.step}
+                  motorName={this.props.motors.sample_vertical.attribute}
+                  label={this.props.motors.sample_vertical.label}
+                  suffix={this.props.motors.sample_vertical.suffix}
+                  decimalPoints={this.props.motors.sample_vertical.precision}
                   state={this.props.motors.sample_vertical.state}
                   stop={this.props.stop}
                   disabled={this.props.motorsDisabled}
@@ -36,13 +36,13 @@ export default class TwoAxisTranslationControl extends React.Component {
                 />
                 <MotorInput
                   save={this.props.save}
-                  value={this.props.motors.sample_horizontal.position}
+                  value={this.props.motors.sample_horizontal.value}
                   saveStep={this.props.saveStep}
-                  step={this.props.steps.sample_horizontalStep}
-                  motorName="sample_horizontal"
-                  label="Horizontal"
-                  suffix="mm"
-                  decimalPoints="3"
+                  step={this.props.motors.sample_horizontal.step}
+                  motorName={this.props.motors.sample_horizontal.attribute}
+                  label={this.props.motors.sample_horizontal.label}
+                  suffix={this.props.motors.sample_horizontal.suffix}
+                  decimalPoints={this.props.motors.sample_horizontal.precision}
                   state={this.props.motors.sample_horizontal.state}
                   stop={this.props.stop}
                   disabled={this.props.motorsDisabled}

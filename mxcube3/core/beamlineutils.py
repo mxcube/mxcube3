@@ -12,14 +12,14 @@ from mxcube3 import mxcube
 from .qutils import READY
 
 
-from mxcube3.core.beamline_adapter import BeamlineAdapter
+from mxcube3.core.adapter.beamline_adapter import BeamlineAdapter
 
 
 def init_signals():
     from mxcube3.routes import signals
 
     try:
-        beamInfo = mxcube.mxcubecore.beamline.beam
+        beamInfo = mxcube.mxcubecore.beamline_ho.beam
         if beamInfo is not None:
             for sig in signals.beam_signals:
                 beamInfo.connect(beamInfo, sig, signals.beam_changed)
@@ -50,7 +50,7 @@ def init_signals():
         logging.getLogger("MX3.HWR").exception(msg)
 
     try:
-        safety_shutter = mxcube.mxcubecore.beamline.safety_shutter
+        safety_shutter = mxcube.mxcubecore.beamline_ho.safety_shutter
         if safety_shutter is not None:
             safety_shutter.connect(
                 safety_shutter,
@@ -72,17 +72,17 @@ def init_signals():
         logging.getLogger("MX3.HWR").error("error loading plotting hwo: %s" % str(ex))
 
     try:
-        mxcube.mxcubecore.beamline.xrf_spectrum.connect(
-            mxcube.mxcubecore.beamline.xrf_spectrum, "new_plot", signals.new_plot
+        mxcube.mxcubecore.beamline_ho.xrf_spectrum.connect(
+            mxcube.mxcubecore.beamline_ho.xrf_spectrum, "new_plot", signals.new_plot
         )
-        mxcube.mxcubecore.beamline.xrf_spectrum.connect(
-            mxcube.mxcubecore.beamline.xrf_spectrum, "plot_data", signals.plot_data
+        mxcube.mxcubecore.beamline_ho.xrf_spectrum.connect(
+            mxcube.mxcubecore.beamline_ho.xrf_spectrum, "plot_data", signals.plot_data
         )
-        mxcube.mxcubecore.beamline.xrf_spectrum.connect(
-            mxcube.mxcubecore.beamline.xrf_spectrum, "plot_end", signals.plot_end
+        mxcube.mxcubecore.beamline_ho.xrf_spectrum.connect(
+            mxcube.mxcubecore.beamline_ho.xrf_spectrum, "plot_end", signals.plot_end
         )
-        mxcube.mxcubecore.beamline.xrf_spectrum.connect(
-            mxcube.mxcubecore.beamline.xrf_spectrum,
+        mxcube.mxcubecore.beamline_ho.xrf_spectrum.connect(
+            mxcube.mxcubecore.beamline_ho.xrf_spectrum,
             "xrf_task_progress",
             signals.xrf_task_progress,
         )
@@ -97,7 +97,7 @@ def diffractometer_init_signals():
     """
     from mxcube3.routes import signals
 
-    diffractometer = mxcube.mxcubecore.beamline.diffractometer
+    diffractometer = mxcube.mxcubecore.beamline_ho.diffractometer
     diffractometer.connect("phaseChanged", signals.diffractometer_phase_changed)
 
 
@@ -109,7 +109,7 @@ def get_aperture():
     :rtype: tuple
     """
     aperture_list, current_aperture = [], None
-    beam = mxcube.mxcubecore.beamline.beam
+    beam = mxcube.mxcubecore.beamline_ho.beam
     
     aperture_list = beam.get_available_size()["values"]
     current_aperture = beam.get_value()[-1]
@@ -118,7 +118,7 @@ def get_aperture():
 
 
 def get_beam_definer():
-    beam_info = mxcube.mxcubecore.beamline.beam
+    beam_info = mxcube.mxcubecore.beamline_ho.beam
 
     if hasattr(beam_info, "beam_definer") and beam_info.beam_definer:
         bd = beam_info.beam_definer
@@ -149,17 +149,17 @@ def get_viewport_info():
     """
     fmt, source_is_scalable = "MJPEG", False
 
-    if mxcube.CONFIG.APP.VIDEO_FORMAT == "MPEG1":
+    if mxcube.CONFIG.app.VIDEO_FORMAT == "MPEG1":
         fmt, source_is_scalable = "MPEG1", True
-        video_sizes = mxcube.mxcubecore.beamline.sample_view.camera.get_available_stream_sizes()
-        width, height, scale = mxcube.mxcubecore.beamline.sample_view.camera.get_stream_size()
+        video_sizes = mxcube.mxcubecore.beamline_ho.sample_view.camera.get_available_stream_sizes()
+        width, height, scale = mxcube.mxcubecore.beamline_ho.sample_view.camera.get_stream_size()
     else:
         scale = 1
-        width = mxcube.mxcubecore.beamline.sample_view.camera.get_width()
-        height = mxcube.mxcubecore.beamline.sample_view.camera.get_height()
+        width = mxcube.mxcubecore.beamline_ho.sample_view.camera.get_width()
+        height = mxcube.mxcubecore.beamline_ho.sample_view.camera.get_height()
         video_sizes = [(width, height)]
 
-    pixelsPerMm = mxcube.mxcubecore.beamline.diffractometer.get_pixels_per_mm()
+    pixelsPerMm = mxcube.mxcubecore.beamline_ho.diffractometer.get_pixels_per_mm()
 
     beam_info_dict = get_beam_info()
 
@@ -171,7 +171,7 @@ def get_viewport_info():
         "sourceIsScalable": source_is_scalable,
         "scale": scale,
         "videoSizes": video_sizes,
-        "videoHash": mxcube.mxcubecore.beamline.sample_view.camera.stream_hash,
+        "videoHash": mxcube.mxcubecore.beamline_ho.sample_view.camera.stream_hash,
     }
 
     data.update(beam_info_dict)
@@ -179,8 +179,8 @@ def get_viewport_info():
 
 
 def beamline_get_all_attributes():
-    ho = BeamlineAdapter(mxcube.mxcubecore.beamline)
-    data = ho.dict_repr()
+    ho = BeamlineAdapter(mxcube.mxcubecore.beamline_ho)
+    data = ho.dict()
     actions = list()
 
     try:
@@ -213,7 +213,7 @@ def beamline_get_all_attributes():
 
     data.update(
         {
-            "path": mxcube.mxcubecore.beamline.session.get_base_image_directory(),
+            "path": mxcube.mxcubecore.beamline_ho.session.get_base_image_directory(),
             "actionsList": actions,
         }
     )
@@ -240,7 +240,7 @@ def beamline_abort_action(name):
             cmd.abort()
 
     try:
-        ho = BeamlineAdapter(mxcube.mxcubecore.beamline).get_object(name.lower())
+        ho = BeamlineAdapter(mxcube.mxcubecore.beamline_ho).get_object(name.lower())
     except AttributeError:
         pass
     else:
@@ -273,27 +273,6 @@ def beamline_run_action(name, params):
         msg = "Action cannot run: command '%s' does not exist" % name
         raise Exception(msg)
 
-
-def beamline_set_attribute(name, data):
-    """
-    """
-    ho = BeamlineAdapter(mxcube.mxcubecore.beamline).get_object(name.lower())
-    data = ho.set_value(data["value"])
-    res = data["available"]     
-
-    return res, data
-
-
-def beamline_get_attribute(name):
-    """
-    """
-    ho = BeamlineAdapter(mxcube.mxcubecore.beamline).get_object(name.lower())
-    data = ho.dict_repr()
-    res = 200 if data["available"] else 520
-
-    return res, data
-
-
 def get_beam_info():
     """
     Returns beam information retrieved by the beam_info hardware object,
@@ -302,7 +281,7 @@ def get_beam_info():
     :return: Beam info dictionary with keys: position, shape, size_x, size_y
     :rtype: dict
     """
-    beam = mxcube.mxcubecore.beamline.beam
+    beam = mxcube.mxcubecore.beamline_ho.beam
     beam_info_dict = {"position": [], "shape": "", "size_x": 0, "size_y": 0}
     sx, sy, shape, label = beam.get_value()
 
@@ -326,21 +305,21 @@ def get_beam_info():
 
 
 def prepare_beamline_for_sample():
-    if hasattr(mxcube.mxcubecore.beamline.collect, "prepare_for_new_sample"):
-        mxcube.mxcubecore.beamline.collect.prepare_for_new_sample()
+    if hasattr(mxcube.mxcubecore.beamline_ho.collect, "prepare_for_new_sample"):
+        mxcube.mxcubecore.beamline_ho.collect.prepare_for_new_sample()
 
 
 def diffractometer_set_phase(phase):
     try:
-        mxcube.mxcubecore.beamline.diffractometer.wait_device_ready(30)
+        mxcube.mxcubecore.beamline_ho.diffractometer.wait_device_ready(30)
     except Exception:
         logging.getLogger("MX3.HWR").warning("Diffractometer not ready")
 
-    mxcube.mxcubecore.beamline.diffractometer.set_phase(phase)
+    mxcube.mxcubecore.beamline_ho.diffractometer.set_phase(phase)
 
 
 def set_aperture(pos):
-    beam = mxcube.mxcubecore.beamline.beam
+    beam = mxcube.mxcubecore.beamline_ho.beam
     msg = "Changing beam size to: %s" % pos
     logging.getLogger("MX3.HWR").info(msg)
     beam.set_value(pos)
@@ -350,17 +329,17 @@ def diffractometer_get_info():
     ret = {}
 
     try:
-        ret["useSC"] = mxcube.mxcubecore.beamline.diffractometer.use_sc
+        ret["useSC"] = mxcube.mxcubecore.beamline_ho.diffractometer.use_sc
     except AttributeError:
         ret["useSC"] = False
 
     try:
-        ret["currentPhase"] = mxcube.mxcubecore.beamline.diffractometer.get_current_phase()
+        ret["currentPhase"] = mxcube.mxcubecore.beamline_ho.diffractometer.get_current_phase()
     except AttributeError:
         ret["currentPhase"] = "None"
 
     try:
-        ret["phaseList"] = mxcube.mxcubecore.beamline.diffractometer.get_phase_list()
+        ret["phaseList"] = mxcube.mxcubecore.beamline_ho.diffractometer.get_phase_list()
     except AttributeError:
         ret["phaseList"] = []
         
@@ -368,7 +347,7 @@ def diffractometer_get_info():
 
 
 def get_detector_info():
-    filetype = mxcube.mxcubecore.beamline.detector.get_property("file_suffix")
+    filetype = mxcube.mxcubecore.beamline_ho.detector.get_property("file_suffix")
 
     if filetype is None:
         filetype = "cbf"

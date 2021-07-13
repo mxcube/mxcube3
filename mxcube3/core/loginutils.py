@@ -87,12 +87,12 @@ def logged_in_users(exclude_inhouse=False):
     users = [user["loginID"] for user in mxcube.USERS.values()]
 
     if exclude_inhouse:
-        if isinstance(mxcube.mxcubecore.beamline.session.in_house_users[0], tuple):
+        if isinstance(mxcube.mxcubecore.beamline_ho.session.in_house_users[0], tuple):
             ih_users = [
-                "%s%s" % (p, c) for (p, c) in mxcube.mxcubecore.beamline.session.in_house_users
+                "%s%s" % (p, c) for (p, c) in mxcube.mxcubecore.beamline_ho.session.in_house_users
             ]
         else:
-            ih_users = mxcube.mxcubecore.beamline.session.in_house_users
+            ih_users = mxcube.mxcubecore.beamline_ho.session.in_house_users
         users = [user for user in users if user not in ih_users]
 
     return users
@@ -107,7 +107,7 @@ def set_operator(sid):
     user = get_user_by_sid(sid)
     user["operator"] = True
 
-    if mxcube.mxcubecore.beamline.lims.loginType.lower() != "user":
+    if mxcube.mxcubecore.beamline_ho.lims.loginType.lower() != "user":
         limsutils.select_proposal(user["loginID"])
 
 
@@ -205,7 +205,7 @@ def is_local_host():
 def is_inhouse_user(user_id):
     user_id_list = [
         "%s%s" % (code, number)
-        for (code, number) in mxcube.mxcubecore.beamline.session.in_house_users
+        for (code, number) in mxcube.mxcubecore.beamline_ho.session.in_house_users
     ]
 
     return user_id in user_id_list
@@ -290,13 +290,13 @@ def signout():
     if is_operator(session.sid):
         qutils.save_queue(session)
         qutils.clear_queue()
-        mxcube.mxcubecore.beamline.sample_view.clear_all()
+        mxcube.mxcubecore.beamline_ho.sample_view.clear_all()
         limsutils.init_sample_list()
 
         qutils.init_queue_settings()
 
-        if hasattr(mxcube.mxcubecore.beamline.session, "clear_session"):
-            mxcube.mxcubecore.beamline.session.clear_session()
+        if hasattr(mxcube.mxcubecore.beamline_ho.session, "clear_session"):
+            mxcube.mxcubecore.beamline_ho.session.clear_session()
 
         mxcube.CURRENTLY_MOUNTED_SAMPLE = ""
 
@@ -313,9 +313,9 @@ def login_info(login_info):
     login_info = limsutils.convert_to_dict(login_info)
 
     res = {
-        "synchrotron_name": mxcube.mxcubecore.beamline.session.synchrotron_name,
-        "beamline_name": mxcube.mxcubecore.beamline.session.beamline_name,
-        "loginType": mxcube.mxcubecore.beamline.lims.loginType.title(),
+        "synchrotron_name": mxcube.mxcubecore.beamline_ho.session.synchrotron_name,
+        "beamline_name": mxcube.mxcubecore.beamline_ho.session.beamline_name,
+        "loginType": mxcube.mxcubecore.beamline_ho.lims.loginType.title(),
         "loginRes": login_info,
         "master": is_operator(session.sid),
         "observerName": get_observer_name(),
@@ -324,11 +324,11 @@ def login_info(login_info):
     user = get_user_by_sid(session.sid)   
     
     res["selectedProposal"] = "%s%s" % (
-        mxcube.mxcubecore.beamline.session.proposal_code,
-        mxcube.mxcubecore.beamline.session.proposal_number
+        mxcube.mxcubecore.beamline_ho.session.proposal_code,
+        mxcube.mxcubecore.beamline_ho.session.proposal_number
     )
 
-    res["selectedProposalID"] = mxcube.mxcubecore.beamline.session.proposal_id
+    res["selectedProposalID"] = mxcube.mxcubecore.beamline_ho.session.proposal_id
 
 
     return user, res

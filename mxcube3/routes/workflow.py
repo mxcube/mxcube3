@@ -5,42 +5,44 @@ from __future__ import print_function
 
 import io
 
-from flask import Response, jsonify, request, send_file
-from mxcube3 import server
-from mxcube3 import mxcube
+from flask import Blueprint, Response, jsonify, request, send_file
 
 from mxcube3.core import wfutils
 
+def init_route(mxcube, server, url_prefix):
+    bp = Blueprint("workflow", __name__, url_prefix=url_prefix)
 
-@server.FLASK.route("/mxcube/api/v0.1/workflow/", methods=["GET"])
-@server.restrict
-def workflow():
-    return jsonify(wfutils.get_available_workflows())
-
-
-@server.FLASK.route("/mxcube/api/v0.1/workflow/", methods=["POST"])
-@server.restrict
-def sumbit_parameters():
-    data = request.get_json()
-    wfutils.submit_parameters(data)
-    return Response(status=200)
+    @bp.route("/", methods=["GET"])
+    @server.restrict
+    def workflow():
+        return jsonify(wfutils.get_available_workflows())
 
 
-@server.FLASK.route("/mxcube/api/v0.1/workflow/mesh_result/<gid>/<t>", methods=["GET"])
-#@server.restrict
-def get_grid_data(gid, t, rand):
-    res = send_file(
-        io.BytesIO(wfutils.get_mesh_result(gid, t)),
-        mimetype="image/png"
-    )
+    @bp.route("/", methods=["POST"])
+    @server.restrict
+    def sumbit_parameters():
+        data = request.get_json()
+        wfutils.submit_parameters(data)
+        return Response(status=200)
 
-    return res
 
-# This route is only for testing
-@server.FLASK.route("/mxcube/api/v0.1/workflow/dialog/<wf>", methods=["GET"])
-@server.restrict
-def workflow_dialog(wf):
-    dialog = wfutils.test_workflow_dialog(wf)
-    server.emit("workflowParametersDialog", dialog, namespace="/hwr")
+    @bp.route("/mesh_result/<gid>/<t>", methods=["GET"])
+    #@server.restrict
+    def get_grid_data(gid, t, rand):
+        res = send_file(
+            io.BytesIO(wfutils.get_mesh_result(gid, t)),
+            mimetype="image/png"
+        )
 
-    return Response(status=200)
+        return res
+
+    # This route is only for testing
+    @bp.route("/dialog/<wf>", methods=["GET"])
+    @server.restrict
+    def workflow_dialog(wf):
+        dialog = wfutils.test_workflow_dialog(wf)
+        server.emit("workflowParametersDialog", dialog, namespace="/hwr")
+
+        return Response(status=200)
+
+    return bp

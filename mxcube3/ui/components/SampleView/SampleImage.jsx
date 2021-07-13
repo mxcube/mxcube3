@@ -472,35 +472,37 @@ export default class SampleImage extends React.Component {
   wheel(e) {
     e.preventDefault();
     e.stopPropagation();
-    const { sampleActions, motorSteps, motors } = this.props;
+    const { sampleActions, motorSteps, attributes } = this.props;
     const { sendMotorPosition, sendZoomPos } = sampleActions;
     const keyPressed = this._keyPressed;
 
-    if (keyPressed === 'r' && motors.phi.state === MOTOR_STATE.READY) {
+    const { phi, focus, zoom } = attributes;
+
+    if (keyPressed === 'r' && phi.state === MOTOR_STATE.READY) {
       // then we rotate phi axis by the step size defined in its box
       if (e.deltaX > 0 || e.deltaY > 0) {
         // zoom in
-        sendMotorPosition('Phi', motors.phi.position + parseInt(motorSteps.phiStep, 10));
+        sendMotorPosition('Phi', phi.value + parseInt(motorSteps.phiStep, 10));
       } else if (e.deltaX < 0 || e.deltaY < 0) {
         // zoom out
-        sendMotorPosition('Phi', motors.phi.position - parseInt(motorSteps.phiStep, 10));
+        sendMotorPosition('Phi', phi.value - parseInt(motorSteps.phiStep, 10));
       }
-    } else if (keyPressed === 'f' && motors.focus.state === MOTOR_STATE.READY) {
+    } else if (keyPressed === 'f' && focus.state === MOTOR_STATE.READY) {
       if (e.deltaY > 0) {
         // Focus in
-        sendMotorPosition('Focus', motors.focus.position + parseFloat(motorSteps.focusStep, 10));
+        sendMotorPosition('Focus', focus.value + parseFloat(motorSteps.focusStep, 10));
       } else if (e.deltaY < 0) {
         // Focus out
-        sendMotorPosition('Focus', motors.focus.position - parseFloat(motorSteps.focusStep, 10));
+        sendMotorPosition('Focus', focus.value - parseFloat(motorSteps.focusStep, 10));
       }
-    } else if (keyPressed === 'z' && motors.zoom.state === MOTOR_STATE.READY) {
+    } else if (keyPressed === 'z' && zoom.state === MOTOR_STATE.READY) {
       // in this case zooming
-      if (e.deltaY > 0 && motors.zoom.position < 10) {
+      if (e.deltaY > 0 && zoom.value < 10) {
         // zoom in
-        sendZoomPos(motors.zoom.position + 1);
-      } else if (e.deltaY < 0 && motors.zoom.position > 1) {
+        sendZoomPos(zoom.value + 1);
+      } else if (e.deltaY < 0 && zoom.value > 1) {
         // zoom out
-        sendZoomPos(motors.zoom.position - 1);
+        sendZoomPos(zoom.value - 1);
       }
     }
   }

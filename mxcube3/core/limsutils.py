@@ -231,23 +231,23 @@ def lims_login(loginID, password, create_session):
     ERROR_CODE = dict({"status": {"code": "0"}})
 
     try:
-        mxcube.mxcubecore.beamline.lims.lims_rest.authenticate(loginID, password)
+        mxcube.mxcubecore.beamline_ho.lims.lims_rest.authenticate(loginID, password)
     except BaseException:
         logging.getLogger("MX3.HWR").error("[LIMS-REST] Could not authenticate")
         return ERROR_CODE
 
-    if mxcube.mxcubecore.beamline.lims.loginType.lower() == "user":
+    if mxcube.mxcubecore.beamline_ho.lims.loginType.lower() == "user":
         try:
-            connection_ok = mxcube.mxcubecore.beamline.lims.echo()
+            connection_ok = mxcube.mxcubecore.beamline_ho.lims.echo()
             if not connection_ok:
-                mxcube.mxcubecore.beamline.lims.init()
+                mxcube.mxcubecore.beamline_ho.lims.init()
         except BaseException:
             msg = "[LIMS] Connection Error!"
             logging.getLogger("MX3.HWR").error(msg)
             return ERROR_CODE
 
         try:
-            proposals = mxcube.mxcubecore.beamline.lims.get_proposals_by_user(loginID)
+            proposals = mxcube.mxcubecore.beamline_ho.lims.get_proposals_by_user(loginID)
 
             logging.getLogger("MX3.HWR").info(
                 "[LIMS] Retrieving proposal list for user: %s, proposals: %s"
@@ -261,13 +261,13 @@ def lims_login(loginID, password, create_session):
             return ERROR_CODE
 
         for prop in session["proposal_list"]:
-            todays_session = mxcube.mxcubecore.beamline.lims.get_todays_session(prop)
+            todays_session = mxcube.mxcubecore.beamline_ho.lims.get_todays_session(prop)
             prop["Session"] = [todays_session["session"]]
 
         if hasattr(
-            mxcube.mxcubecore.beamline.session, "commissioning_fake_proposal"
-        ) and mxcube.mxcubecore.beamline.session.is_inhouse(loginID, None):
-            dummy = mxcube.mxcubecore.beamline.session.commissioning_fake_proposal
+            mxcube.mxcubecore.beamline_ho.session, "commissioning_fake_proposal"
+        ) and mxcube.mxcubecore.beamline_ho.session.is_inhouse(loginID, None):
+            dummy = mxcube.mxcubecore.beamline_ho.session.commissioning_fake_proposal
             session["proposal_list"].append(dummy)
 
         login_res["proposalList"] = session["proposal_list"]
@@ -275,10 +275,10 @@ def lims_login(loginID, password, create_session):
 
     else:
         try:
-            login_res = mxcube.mxcubecore.beamline.lims.login(
+            login_res = mxcube.mxcubecore.beamline_ho.lims.login(
                 loginID, password, create_session=create_session
             )
-            proposal = mxcube.mxcubecore.beamline.lims.get_proposal(
+            proposal = mxcube.mxcubecore.beamline_ho.lims.get_proposal(
                 login_res["Proposal"]["code"], login_res["Proposal"]["number"]
             )
 
@@ -296,7 +296,7 @@ def lims_login(loginID, password, create_session):
 
 def create_lims_session(login_res):
     for prop in session["proposal_list"]:
-        todays_session = mxcube.mxcubecore.beamline.lims.get_todays_session(prop)
+        todays_session = mxcube.mxcubecore.beamline_ho.lims.get_todays_session(prop)
         prop["Session"] = [todays_session["session"]]
 
     login_res["proposalList"] = session["proposal_list"]
@@ -330,46 +330,46 @@ def select_proposal(proposal):
     logging.getLogger("MX3.HWR").info("[LIMS] Selecting proposal: %s" % proposal)
     logging.getLogger("MX3.HWR").info("[LIMS] Proposal info: %s" % proposal_info)
     if (
-        mxcube.mxcubecore.beamline.lims.loginType.lower() == "user"
+        mxcube.mxcubecore.beamline_ho.lims.loginType.lower() == "user"
         and "Commissioning" in proposal_info["Proposal"]["title"]
     ):
-        if hasattr(mxcube.mxcubecore.beamline.session, "set_in_commissioning"):
-            mxcube.mxcubecore.beamline.session.set_in_commissioning(proposal_info)
+        if hasattr(mxcube.mxcubecore.beamline_ho.session, "set_in_commissioning"):
+            mxcube.mxcubecore.beamline_ho.session.set_in_commissioning(proposal_info)
             logging.getLogger("MX3.HWR").info("[LIMS] Commissioning proposal flag set.")
 
     if proposal_info:
-        mxcube.mxcubecore.beamline.session.proposal_code = proposal_info.get("Proposal").get(
+        mxcube.mxcubecore.beamline_ho.session.proposal_code = proposal_info.get("Proposal").get(
             "code", ""
         )
-        mxcube.mxcubecore.beamline.session.proposal_number = proposal_info.get("Proposal").get(
+        mxcube.mxcubecore.beamline_ho.session.proposal_number = proposal_info.get("Proposal").get(
             "number", ""
         )
-        mxcube.mxcubecore.beamline.session.session_id = proposal_info.get("Session")[0].get(
+        mxcube.mxcubecore.beamline_ho.session.session_id = proposal_info.get("Session")[0].get(
             "sessionId"
         )
 
-        mxcube.mxcubecore.beamline.session.proposal_id = proposal_info.get("Session")[0].get(
+        mxcube.mxcubecore.beamline_ho.session.proposal_id = proposal_info.get("Session")[0].get(
             "proposalId"
         )
 
         session["proposal"] = proposal_info
 
-        if hasattr(mxcube.mxcubecore.beamline.session, "prepare_directories"):
+        if hasattr(mxcube.mxcubecore.beamline_ho.session, "prepare_directories"):
             try:
                 logging.getLogger("MX3.HWR").info(
                     "[LIMS] Creating data directories for proposal %s" % proposal
                 )
-                mxcube.mxcubecore.beamline.session.prepare_directories(proposal_info)
+                mxcube.mxcubecore.beamline_ho.session.prepare_directories(proposal_info)
             except BaseException:
                 logging.getLogger("MX3.HWR").info(
                     "[LIMS] Error creating data directories, %s" % sys.exc_info()[1]
                 )
 
         # Get all the files in the root data dir for this user
-        root_path = mxcube.mxcubecore.beamline.session.get_base_image_directory()
+        root_path = mxcube.mxcubecore.beamline_ho.session.get_base_image_directory()
 
         if not mxcube.INITIAL_FILE_LIST and os.path.isdir(root_path):
-            ftype = mxcube.mxcubecore.beamline.detector.get_property("file_suffix")
+            ftype = mxcube.mxcubecore.beamline_ho.detector.get_property("file_suffix")
             mxcube.INITIAL_FILE_LIST = scantree(root_path, [ftype])
 
         logging.getLogger("user_log").info("[LIMS] Proposal selected.")
@@ -390,7 +390,7 @@ def get_default_prefix(sample_data, generic_name):
     else:
         sample = sample_data
 
-    return mxcube.mxcubecore.beamline.session.get_default_prefix(sample, generic_name)
+    return mxcube.mxcubecore.beamline_ho.session.get_default_prefix(sample, generic_name)
 
 
 def get_default_subdir(sample_data):
@@ -412,48 +412,48 @@ def get_default_subdir(sample_data):
 
 
 def get_dc_link(col_id):
-    link = mxcube.mxcubecore.beamline.lims.lims_rest.dc_link(col_id)
+    link = mxcube.mxcubecore.beamline_ho.lims.lims_rest.dc_link(col_id)
 
     if not link:
-        link = mxcube.mxcubecore.beamline.lims.dc_link(col_id)
+        link = mxcube.mxcubecore.beamline_ho.lims.dc_link(col_id)
 
     return link
 
 
 def get_dc_thumbnail(image_id):
-    fname, data = mxcube.mxcubecore.beamline.lims.lims_rest.get_dc_thumbnail(image_id)
+    fname, data = mxcube.mxcubecore.beamline_ho.lims.lims_rest.get_dc_thumbnail(image_id)
     data = io.BytesIO(data)
 
     return fname, data
 
 
 def get_dc_image(image_id):
-    fname, data = mxcube.mxcubecore.beamline.lims.lims_rest.get_dc_image(image_id)
+    fname, data = mxcube.mxcubecore.beamline_ho.lims.lims_rest.get_dc_image(image_id)
     data = io.BytesIO(data)
 
     return fname, data
 
 
 def get_quality_indicator_plot(dc_id):
-    data = mxcube.mxcubecore.beamline.lims.lims_rest.get_quality_indicator_plot(dc_id)
+    data = mxcube.mxcubecore.beamline_ho.lims.lims_rest.get_quality_indicator_plot(dc_id)
     data = io.BytesIO(data)
 
     return "qind", data
 
 
 def synch_with_lims():
-    proposal_id = mxcube.mxcubecore.beamline.session.proposal_id
+    proposal_id = mxcube.mxcubecore.beamline_ho.session.proposal_id
 
     # session_id is not used, so we can pass None as second argument to
     # 'db_connection.get_samples'
-    lims_samples = mxcube.mxcubecore.beamline.lims.get_samples(proposal_id, None)
+    lims_samples = mxcube.mxcubecore.beamline_ho.lims.get_samples(proposal_id, None)
 
     samples_info_list = lims_samples
     mxcube.LIMS_SAMPLE_DATA = {}
 
     for sample_info in samples_info_list:
         sample_info["limsID"] = sample_info.pop("sampleId")
-        sample_info["limsLink"] = mxcube.mxcubecore.beamline.lims.lims_rest.sample_link()
+        sample_info["limsLink"] = mxcube.mxcubecore.beamline_ho.lims.lims_rest.sample_link()
         sample_info["defaultPrefix"] = get_default_prefix(sample_info, False)
         sample_info["defaultSubDir"] = get_default_subdir(sample_info)
 
@@ -465,7 +465,7 @@ def synch_with_lims():
         except (TypeError, ValueError, KeyError):
             continue
         else:
-            if mxcube.mxcubecore.beamline.sample_changer.__class__.__TYPE__ in [
+            if mxcube.mxcubecore.beamline_ho.sample_changer.__class__.__TYPE__ in [
                 "HCD",
                 "FlexHCD",
                 "RoboDiff",

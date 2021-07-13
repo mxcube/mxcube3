@@ -1,7 +1,8 @@
 <device class="ExporterNStateMockup">
-  <username>Back Light</username>
+  <username>backlight_switch</username>
   <exporter_address>wid30bmd:9001</exporter_address>
   <value_channel_name>BackLightIsOn</value_channel_name>
+  <default_value>False</default_value>
   <values>{"IN": True, "OUT": False}</values>
   <use_hwstate>True</use_hwstate>
 </device>

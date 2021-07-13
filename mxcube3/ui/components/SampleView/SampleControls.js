@@ -11,6 +11,8 @@ import config from 'guiConfig';
 import OneAxisTranslationControl from '../MotorInput/OneAxisTranslationControl';
 import { MOTOR_STATE } from '../../constants';
 
+import { find } from 'lodash';
+
 const { fabric } = window;
 
 export default class SampleControls extends React.Component {
@@ -20,8 +22,8 @@ export default class SampleControls extends React.Component {
     this.takeSnapShot = this.takeSnapShot.bind(this);
     this.doTakeSnapshot = this.doTakeSnapshot.bind(this);
     this.setZoom = this.setZoom.bind(this);
-    this.toggleFrontLight = this.toggleLight.bind(this, 'FrontLight');
-    this.toggleBackLight = this.toggleLight.bind(this, 'BackLight');
+    this.toggleFrontLight = this.toggleLight.bind(this, 'frontlight');
+    this.toggleBackLight = this.toggleLight.bind(this, 'backlight');
     this.toggleCentring = this.toggleCentring.bind(this);
     this.toggleDrawGrid = this.toggleDrawGrid.bind(this);
     this.availableVideoSizes = this.availableVideoSizes.bind(this);
@@ -33,10 +35,10 @@ export default class SampleControls extends React.Component {
 
   setZoom(option) {
     const newZoom = parseInt(option.target.value, 10);
-    this.props.sampleActions.saveMotorPosition('zoom', option.target.value);
+    this.props.setBeamlineAttribute('zoom', option.target.value);
 
-    if (this.props.motors.zoom.position !== newZoom) {
-      this.props.sampleActions.sendZoomPos(newZoom);
+    if (this.props.attributes.zoom.value !== newZoom) {
+      this.props.sendSetAttribute('zoom', newZoom);
     }
   }
 
@@ -91,13 +93,10 @@ export default class SampleControls extends React.Component {
   }
 
   toggleLight(name) {
-    const lighstate = this.props.motors[`${name}Switch`].position;
-
-    if (lighstate) {
-      this.props.sampleActions.sendLightOff(name);
-    } else {
-      this.props.sampleActions.sendLightOn(name);
-    }
+    const lighstate = this.props.attributes[`${name}_switch`].value;
+    const newState = this.props.attributes[`${name}_switch`].
+      commands.filter(state => state !== lighstate)[0];
+    this.props.sendSetAttribute(`${name}_switch`, newState);
   }
 
 
@@ -152,7 +151,13 @@ Reset
   }
 
   render() {
-    const { motors } = this.props;
+    const { attributes } = this.props;
+
+    const foucs_motor_uiprop = find(
+      this.props.uiproperties.components, { role: 'focus' }
+    );
+
+    const foucs_motor = this.props.attributes[foucs_motor_uiprop.attribute];
 
     return (
       <div style={{ display: 'flex', position: 'absolute', width: '100%' }}>
@@ -203,19 +208,19 @@ Reset
                     overlay={(
                       <span className="slider-overlay" style={{ marginTop: '20px' }}>
                         <OneAxisTranslationControl
-                          save={this.props.sampleActions.sendMotorPosition}
-                          value={motors.focus.position}
-                          min={motors.focus.limits[0]}
-                          max={motors.focus.limits[1]}
+                          save={this.props.sendSetAttribute}
+                          value={foucs_motor.value}
+                          min={foucs_motor.limits[0]}
+                          max={foucs_motor.limits[1]}
                           step={this.props.steps.focusStep}
-                          motorName="focus"
-                          suffix="mm"
-                          decimalPoints="3"
-                          state={this.props.motors.focus.state}
+                          motorName={foucs_motor_uiprop.attribute}
+                          suffix={foucs_motor_uiprop.suffix}
+                          decimalPoints={foucs_motor_uiprop.precision}
+                          state={foucs_motor.state}
                           disabled={this.props.motorsDisabled}
                         />
                       </span>
-)}
+                    )}
                   >
                     <Button
                       name="focus"
@@ -234,23 +239,23 @@ Reset
               placement="bottom"
               overlay={(
                 <span className="slider-overlay">
-                  {motors.zoom.limits[0]}
+                  {attributes.zoom.limits[0]}
                   <input
                     style={{ top: '20px' }}
                     className="bar"
                     type="range"
                     id="zoom-control"
-                    min={motors.zoom.limits[0]}
-                    max={motors.zoom.limits[1]}
+                    min={attributes.zoom.limits[0]}
+                    max={attributes.zoom.limits[1]}
                     step="1"
-                    value={motors.zoom.position}
-                    disabled={motors.zoom.state !== MOTOR_STATE.READY}
+                    value={attributes.zoom.value}
+                    disabled={attributes.zoom.state !== MOTOR_STATE.READY}
                     onMouseUp={this.setZoom}
-                    onChange={e => this.props.sampleActions.saveMotorPosition('zoom', e.target.value)}
+                    onChange={e => this.props.setBeamlineAttribute('zoom', e.target.value)}
                     list="volsettings"
                     name="zoomSlider"
                   />
-                  {motors.zoom.limits[1]}
+                  {attributes.zoom.limits[1]}
                 </span>
 )}
             >
@@ -263,8 +268,8 @@ Reset
                   name="zoomOut"
                 />
                 <datalist id="volsettings">
-                  {[...Array(motors.zoom.limits[1] - motors.zoom.limits[0]).keys()].map(i =>
-                    (<option>{motors.zoom.limits[0] + i }</option>)
+                  {[...Array(attributes.zoom.limits[1] - attributes.zoom.limits[0]).keys()].map(i =>
+                    (<option>{attributes.zoom.limits[0] + i }</option>)
                   )}
                 </datalist>
                 <span className="sample-controll-label">Zoom</span>
@@ -278,7 +283,9 @@ Reset
                 title="Backlight On/Off"
                 className="fa fa-lightbulb-o sample-controll"
                 onClick={this.toggleBackLight}
-                active={motors.BackLightSwitch.position === 1}
+                active= {
+                  attributes.backlight_switch.value === attributes.backlight_switch.commands[0]
+                }
               />
               <OverlayTrigger
                 trigger="click"
@@ -291,12 +298,12 @@ Reset
                       className="bar"
                       type="range"
                       step="0.1"
-                      min={motors.BackLight.limits[0]}
-                      max={motors.BackLight.limits[1]}
-                      value={motors.BackLight.position}
-                      disabled={motors.BackLight.state !== MOTOR_STATE.READY}
-                      onMouseUp={e => this.props.sampleActions.sendMotorPosition('BackLight', e.target.value)}
-                      onChange={e => this.props.sampleActions.saveMotorPosition('BackLight', e.target.value)}
+                      min={attributes.backlight.limits[0]}
+                      max={attributes.backlight.limits[1]}
+                      value={attributes.backlight.value}
+                      disabled={attributes.backlight.state !== MOTOR_STATE.READY}
+                      onMouseUp={e => this.props.sendSetAttribute('backlight', e.target.value)}
+                      onChange={e => this.props.setBeamlineAttribute('backlight', e.target.value)}
                       name="backlightSlider"
                     />
                   </span>
@@ -318,7 +325,9 @@ Reset
                 title="Front On/Off"
                 className="fa fa-lightbulb-o sample-controll"
                 onClick={this.toggleFrontLight}
-                active={motors.FrontLightSwitch.position === 1}
+                active={
+                  attributes.frontlight_switch.value === attributes.backlight_switch.commands[0]
+                }
               />
               <OverlayTrigger
                 trigger="click"
@@ -330,12 +339,12 @@ Reset
                       className="bar"
                       type="range"
                       step="0.1"
-                      min={motors.FrontLight.limits[0]}
-                      max={motors.FrontLight.limits[1]}
-                      value={motors.FrontLight.position}
-                      disabled={motors.FrontLight.state !== MOTOR_STATE.READY}
-                      onMouseUp={e => this.props.sampleActions.sendMotorPosition('FrontLight', e.target.value)}
-                      onChange={e => this.props.sampleActions.saveMotorPosition('FrontLight', e.target.value)}
+                      min={attributes.frontlight.limits[0]}
+                      max={attributes.frontlight.limits[1]}
+                      value={attributes.frontlight.value}
+                      disabled={attributes.frontlight.state !== MOTOR_STATE.READY}
+                      onMouseUp={e => this.props.sendSetAttribute('frontlight', e.target.value)}
+                      onChange={e => this.props.setBeamlineAttribute('frontlight', e.target.value)}
                       name="frontLightSlider"
                     />
                   </span>

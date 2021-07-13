@@ -64,12 +64,12 @@ export const SPACE_GROUPS = ['', 'P1', 'P2', 'P21', 'C2', 'P222', 'P2221', 'P212
 
 
 export const MOTOR_STATE = {
-  UNKNOWN: 0,
-  WARNING: 1,
-  BUSY: 2,
-  READY: 3,
-  FAULT: 4,
-  OFF: 5
+  UNKNOWN: 'UNKNOWN',
+  WARNING: 'WARNING',
+  BUSY: 'BUSY',
+  READY: 'READY',
+  FAULT: 'FAULT',
+  OFF: 'OFF'
 };
 
 export const MOTOR_STATE_DESC = {};

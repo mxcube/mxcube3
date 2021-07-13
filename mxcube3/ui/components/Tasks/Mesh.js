@@ -258,7 +258,7 @@ Mesh = connect((state) => {
       transmission: (state.taskForm.taskData.sampleID
         ? state.taskForm.taskData.parameters.transmission
         : state.beamline.attributes.transmission.value),
-      osc_start: state.beamline.motors.phi.position
+      osc_start: state.beamline.attributes.omega.value
     }
   };
 })(Mesh);

@@ -5,7 +5,7 @@
   <object hwrid="/udiff_zoom" role="zoom"/>
   <object hwrid="/udiff_flight" role="frontlight"/>
   <object hwrid="/udiff_light" role="backlight"/>
-  <object hwrid="/minidiff_mockup" role="diffractometer"/>
+  <object hwrid="/minidiff" role="diffractometer"/>
 
   <hide_grid_threshold>5</hide_grid_threshold>
 </object>

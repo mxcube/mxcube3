@@ -1,4 +1,5 @@
 <device class="MotorMockup">
-  <motor_name>FrontLight</motor_name>
+  <username>frontlight</username>
+  <motor_name>frontlight</motor_name>
   <exporter_address>192.168.96.43:9001</exporter_address>
 </device>

@@ -1,0 +1,4 @@
+<device class = "TransmissionMockup">
+  <username>transmission</username>
+  <default_value>10</default_value>
+</device>

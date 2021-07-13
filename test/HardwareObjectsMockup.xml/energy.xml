@@ -1,0 +1,17 @@
+<equipment class="EnergyMockup">
+  <username>energy</username>
+  <mad>
+    <defaultenergy>
+      <energy>12.65950</energy>
+      <directory>pk</directory>
+    </defaultenergy>
+    <defaultenergy>
+      <energy>12.65950</energy>
+      <directory>ip</directory>
+    </defaultenergy>
+    <defaultenergy>
+      <energy>12.70800</energy>
+      <directory>rm</directory>
+    </defaultenergy>
+  </mad>
+</equipment>

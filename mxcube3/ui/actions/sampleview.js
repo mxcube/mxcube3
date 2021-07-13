@@ -39,7 +39,7 @@ export function setAperture(size) {
 
 export function setStepSize(name, value) {
   return {
-    type: 'SET_STEP_SIZE', name, value
+    type: 'SET_STEP_SIZE', componentName: 'sample_view', name, value
   };
 }
 
@@ -211,7 +211,7 @@ export function setGridResultType(gridResultType) {
 
 export function sendRotateToShape(sid) {
   return function (dispatch) {
-    fetch('/mxcube/api/v0.1/shapes/rotate_to', {
+    fetch('/mxcube/api/v0.1/sampleview/shapes/rotate_to', {
       method: 'POST',
       credentials: 'include',
       headers: {

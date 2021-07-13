@@ -31,7 +31,7 @@ export function selectProposal(prop) {
 }
 
 export function sendMail(sender, content) {
-  fetch('mxcube/api/v0.1/send_feedback', {
+  fetch('mxcube/api/v0.1/login/send_feedback', {
     method: 'POST',
     credentials: 'include',
     headers: {
@@ -79,7 +79,7 @@ export function startSession() {
 
 export function getLoginInfo() {
   return function (dispatch) {
-    return fetch('mxcube/api/v0.1/login_info', {
+    return fetch('mxcube/api/v0.1/login/login_info', {
       method: 'GET',
       headers: {
         Accept: 'application/json',

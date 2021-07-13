@@ -19,8 +19,8 @@ export default class SampleItem extends Component {
 
   render() {
     return (
-      <div className="node node-sample" style={{ opacity }}>
-        <span className="node-name">{text}</span>
+      <div className="node node-sample">
+        <span className="node-name">{this.props.text}</span>
          <div className="pull-right">
              <i className="fa fa-sign-in" onClick={this.mountSample}></i>
              <i className="fa fa-times" onClick={this.deleteSample}></i>

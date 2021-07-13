@@ -445,7 +445,7 @@ Characterisation = connect((state) => {
         : state.beamline.attributes.transmission.value),
       osc_start: (state.taskForm.sampleIds.constructor !== Array
         ? state.taskForm.taskData.parameters.osc_start
-        : state.beamline.motors.phi.position)
+        : state.beamline.attributes.omega.value)
     }
   };
 })(Characterisation);

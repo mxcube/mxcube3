@@ -17,6 +17,12 @@ export default class LabeledValue extends React.Component {
       valueStyle = { display: 'block', fontSize: '100%', borderRadius: '0px' };
     }
 
+    let value = this.props.value.toFixed(parseInt(this.props.precision, 10));
+
+    if (this.props.format === 'expo') {
+      value = parseFloat(this.props.value).toExponential(this.props.precision);
+    }
+
     return (
       <div>
         <span>
@@ -33,7 +39,7 @@ export default class LabeledValue extends React.Component {
               bsStyle={this.props.level}
               style={ valueStyle }
             >
-              {this.props.value} {this.props.suffix}
+              {value} {this.props.suffix}
             </Label>
           </div>
         </span>
@@ -47,6 +53,8 @@ LabeledValue.defaultProps = {
   value: 0,
   name: '',
   suffix: '',
+  precision: '1',
+  format: '',
   look: 'horizontal',
   level: 'info'
 };

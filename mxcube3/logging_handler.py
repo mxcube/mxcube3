@@ -10,7 +10,7 @@ class MX3LoggingHandler(logging.handlers.BufferingHandler):
         super().__init__(1000)
         self.server = server
 
-        @server.FLASK_SOCKETIO.on("connect", namespace="/logging")
+        @server.flask_socketio.on("connect", namespace="/logging")
         @server.ws_restrict
         def connect():
             # this is needed to create the namespace, and the actual connection

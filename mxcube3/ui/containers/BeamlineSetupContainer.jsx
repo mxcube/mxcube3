@@ -12,9 +12,13 @@ import MachInfo from '../components/MachInfo/MachInfo';
 import OneAxisTranslationControl from '../components/MotorInput/OneAxisTranslationControl';
 import * as SampleViewActions from '../actions/sampleview';
 
-import { sendGetAllAttributes,
+import { find, filter } from 'lodash';
+
+import {
+  sendGetAllAttributes,
   sendSetAttribute,
-  sendAbortCurrentAction } from '../actions/beamline';
+  sendAbortCurrentAction
+} from '../actions/beamline';
 
 import { sendCommand } from '../actions/sampleChanger';
 
@@ -28,10 +32,9 @@ class BeamlineSetupContainer extends React.Component {
     this.dmState = this.dmState.bind(this);
   }
 
-
-  componentDidMount() {
-    this.props.getAllAttributes();
-  }
+  // componentDidMount() {
+  // this.props.getAllAttributes();
+  // }
 
 
   onSaveHandler(name, value) {
@@ -49,11 +52,11 @@ class BeamlineSetupContainer extends React.Component {
   }
 
   beamstopAlignmentOverlay() {
-    const motors = this.props.beamline.motors;
+    const attributes = this.props.beamline.attributes;
     const motorInputList = [];
     let popover = null;
 
-    const motor = motors.beamstop_distance;
+    const motor = attributes.beamstop_alignemnt_x;
     const step = this.props.sampleview.motorSteps.beamstop_distance;
 
     if (motor !== undefined && motor.state !== 0) {
@@ -85,33 +88,47 @@ class BeamlineSetupContainer extends React.Component {
 
   createActuatorComponent() {
     const acts = [];
-    for (const key in this.props.beamline.attributes) {
-      if (this.props.beamline.attributes[key].type === 'DUOSTATE') {
-        if (this.props.beamline.attributes[key].label === 'Beamstop') {
-          acts.push(<Col key={key} className="pull-right">
+
+    const uiproperties = this.props.uiproperties;
+    if (uiproperties.hasOwnProperty('beamline_setup')) {
+      const blsetup_properties = uiproperties.beamline_setup.components;
+
+      for (const key in this.props.beamline.attributes) {
+        if (this.props.beamline.attributes[key] !== undefined) {
+          const uiprop = find(blsetup_properties, { attribute: key });
+
+          if (uiprop !== undefined) {
+            if (uiprop.value_type === 'NSTATE') {
+              if (uiprop.label === 'Beamstop') {
+                acts.push(
+                <Col key={key} className="pull-right">
                     <InOutSwitch
                       onText={ this.props.beamline.attributes[key].commands[0] }
                       offText={ this.props.beamline.attributes[key].commands[1] }
-                      labelText={ this.props.beamline.attributes[key].label }
+                      labelText={ uiprop.label }
                       pkey={ key }
                       data={ this.props.beamline.attributes[key] }
                       onSave={ this.setAttribute }
                       optionsOverlay={ this.beamstopAlignmentOverlay() }
                     />
-                    </Col>
-          );
-        } else {
-          acts.push(<Col key={key} className="pull-right">
+                  </Col>
+                );
+              } else {
+                acts.push(
+                  <Col key={key} className="pull-right">
                     <InOutSwitch
                       onText={ this.props.beamline.attributes[key].commands[0] }
                       offText={ this.props.beamline.attributes[key].commands[1] }
-                      labelText={ this.props.beamline.attributes[key].label }
+                      labelText={ uiprop.label }
                       pkey={ key }
                       data={ this.props.beamline.attributes[key] }
                       onSave={ this.setAttribute }
                     />
-                    </Col>
-          );
+                  </Col>
+                );
+              }
+            }
+          }
         }
       }
     }
@@ -120,19 +137,59 @@ class BeamlineSetupContainer extends React.Component {
 
 
   dmState() {
-    let state = 'READY';
+    return this.props.beamline.attributes.diffractometer.state;
+  }
 
-    const notReady = Object.values(this.props.beamline.motors).
-      filter((motor) => motor.state !== 2);
+  render_table_row(uiprop_list) {
+    const components = [];
 
-    if (notReady.length !== 0) {
-      state = 'BUSY';
+    for (const uiprop of uiprop_list) {
+      const beamline_attribute = this.props.beamline.attributes[uiprop.attribute];
+
+      components.push(
+        <td style={{ paddingLeft: '0.5em' }}>
+          { uiprop.label }:
+        </td>);
+      components.push(
+        <td style={{ fontWeight: 'bold', borderRight: '1px solid #ddd', paddingRight: '0.5em' }}>
+          { beamline_attribute.readonly ?
+            (<LabeledValue
+              suffix={ uiprop.suffix }
+              precision={ uiprop.precision }
+              format={ uiprop.format || '' }
+              name=""
+              value={beamline_attribute.value}
+            />)
+            :
+            (<PopInput
+              name=""
+              pkey= {uiprop.attribute}
+              suffix={uiprop.suffix }
+              precision={ uiprop.precision }
+              data={ beamline_attribute }
+              onSave= { this.setAttribute }
+              onCancel= { this.onCancelHandler }
+            />)
+          }
+        </td>
+      );
     }
 
-    return state;
+    return components;
   }
 
   render() {
+    // const blsetup_properties = uiproperties.beamline_setup.components;
+
+    const uiproperties = this.props.uiproperties;
+
+    if (!uiproperties.hasOwnProperty('beamline_setup')) {
+      return null;
+    }
+
+    const uiprops = this.props.uiproperties.beamline_setup.components;
+    const uiprop_list = filter(uiprops, { value_type: 'FLOAT' });
+
     return (
       <Row style={{
         paddingTop: '0.5em',
@@ -151,115 +208,11 @@ class BeamlineSetupContainer extends React.Component {
                 style={{ margin: '0px', fontWeight: 'bold',
                   paddingLeft: '7em', paddingRight: '7em' }}
               >
-               <tr>
-                 <td>
-                   Energy:
-                 </td>
-                <td style={{ fontWeight: 'bold' }}>
-                  { this.props.beamline.attributes.energy.readonly ?
-                    (<LabeledValue
-                      suffix="keV"
-                      name=""
-                      value={this.props.beamline.attributes.energy.value}
-                    />)
-                    :
-                    (<PopInput
-                      name=""
-                      pkey="energy"
-                      suffix="keV"
-                      data={ this.props.beamline.attributes.energy }
-                      onSave= { this.setAttribute }
-                      onCancel= { this.onCancelHandler }
-                    />)
-                  }
-                </td>
-                <td style={{ borderLeft: '1px solid #ddd', paddingLeft: '1em' }}>
-                  Resolution:
-                </td>
-                <td>
-                  <PopInput
-                    name=""
-                    pkey="resolution"
-                    suffix="&Aring;"
-                    data={this.props.beamline.attributes.resolution}
-                    onSave={this.setAttribute}
-                    onCancel={this.onCancelHandler}
-                  />
-                </td>
-                <td style={{ borderLeft: '1px solid #ddd', paddingLeft: '1em' }}>
-                  Transmission:
-                </td>
-                <td>
-                  <PopInput
-                    name=""
-                    pkey="transmission"
-                    suffix="%"
-                    data={this.props.beamline.attributes.transmission}
-                    onSave={this.setAttribute}
-                    onCancel={this.onCancelHandler}
-                  />
-                </td>
-                <td style={{ borderLeft: '1px solid #ddd', paddingLeft: '1em' }}>
-                  Cryo:
-                </td>
-                  { this.props.beamline.attributes.cryo ?
-                    <td>
-                      <LabeledValue
-                        name=""
-                        suffix="K"
-                        value={this.props.beamline.attributes.cryo.value}
-                      />
-                    </td>
-                    :
-                    null
-                  }
+              <tr>
+                {this.render_table_row(uiprop_list.slice(0, 4))}
               </tr>
               <tr>
-                <td>
-                  Wavelength:
-                </td>
-                <td>
-                  { this.props.beamline.attributes.wavelength.readonly ?
-                    (<LabeledValue
-                      suffix="&Aring;"
-                      name=""
-                      value={this.props.beamline.attributes.wavelength.value}
-                    />)
-                    :
-                    (<PopInput
-                      name=""
-                      pkey="wavelength"
-                      placement="left"
-                      suffix="&Aring;"
-                      data={this.props.beamline.attributes.wavelength}
-                      onSave={this.setAttribute}
-                      onCancel={this.onCancelHandler}
-                    />)
-                  }
-                </td>
-                <td style={{ borderLeft: '1px solid #ddd', paddingLeft: '1em' }}>
-                  Detector:
-                </td>
-                <td>
-                  <PopInput
-                    name=""
-                    pkey="detector_distance"
-                    suffix="mm"
-                    data={this.props.beamline.attributes.detector_distance}
-                    onSave={this.setAttribute}
-                    onCancel={this.onCancelHandler}
-                  />
-                </td>
-                <td style={{ borderLeft: '1px solid #ddd', paddingLeft: '1em' }}>
-                  Flux:
-                </td>
-                <td>
-                  <LabeledValue
-                    suffix="ph/s"
-                    name=""
-                    value={this.props.beamline.attributes.flux.value}
-                  />
-                </td>
+                {this.render_table_row(uiprop_list.slice(4))}
                 <td style={{ borderLeft: '1px solid #ddd', paddingLeft: '1em' }}>
                 </td>
                 <td>
@@ -304,6 +257,7 @@ class BeamlineSetupContainer extends React.Component {
 
 function mapStateToProps(state) {
   return {
+    uiproperties: state.uiproperties,
     beamline: state.beamline,
     sampleview: state.sampleview,
     sampleChanger: state.sampleChanger

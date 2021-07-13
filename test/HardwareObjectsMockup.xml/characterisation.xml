@@ -1,0 +1,4 @@
+<object class="EDNACharacterisationMockup">
+  <edna_command>/users/blissadm/local/bin/edna_script_bes.py</edna_command>
+  <edna_default_file>edna_defaults.xml</edna_default_file>
+</object>

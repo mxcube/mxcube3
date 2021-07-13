@@ -35,4 +35,5 @@ dependencies:
       - Flask-Session==0.3.2
       - git+https://github.com/marcus-oscarsson/python-v4l2.git
       - Louie-latest
+      - spectree
       - git+https://github.com/mxcube/mxcubecore.git

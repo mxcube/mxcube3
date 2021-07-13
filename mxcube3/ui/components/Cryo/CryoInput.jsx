@@ -103,10 +103,10 @@ export default class CryoInput extends React.Component {
 
   inputComponent() {
     const props = { value: this.props.data.value,
-                    ref: 'input',
-                    onSubmit: this.submit,
-                    onCancel: this.cancel,
-                    onSave: this.save };
+      ref: 'input',
+      onSubmit: this.submit,
+      onCancel: this.cancel,
+      onSave: this.save };
 
     let input = (<DefaultInput dataType={this.props.dataType} inputSize={this.props.inputSize} />);
 

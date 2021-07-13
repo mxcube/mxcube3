@@ -138,12 +138,12 @@ export default class LabelPopInput extends React.Component {
 
   inputComponent() {
     const props = { value: this.props.data.value,
-                    ref: 'input',
-                    onSubmit: this.submit,
-                    onCancel: this.cancel,
-                    onSave: this.save,
-                    precision: this.props.data.precision,
-                    step: this.props.data.step };
+      ref: 'input',
+      onSubmit: this.submit,
+      onCancel: this.cancel,
+      onSave: this.save,
+      precision: this.props.data.precision,
+      step: this.props.data.step };
 
     let input = (
       <DefaultInput
@@ -220,14 +220,14 @@ export default class LabelPopInput extends React.Component {
         <Label
           className={`${this.props.ref}`}
           style={{ backgroundColor: 'transparent', display: 'block',
-                   marginBottom: '3px', color: '#000' }}
+            marginBottom: '3px', color: '#000' }}
         >
           {this.props.name}
         </Label>
         <Label
           bsStyle={stateClass}
           style={{ backgroundColor: 'transparent', display: 'block',
-                   fontSize: '100%', borderRadius: '0px' }}
+            fontSize: '100%', borderRadius: '0px' }}
         >
           <OverlayTrigger ref="overlay" trigger="click" rootClose placement={this.props.placement}
             overlay={popover}

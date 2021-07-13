@@ -28,7 +28,7 @@ const warn = (values, props) => {
     warnings.transmission = 'Entered transmission is different from current transmission';
   }
 
-  if (props.beamline.motors.phi.position !== parseFloat(values.osc_start)) {
+  if (props.beamline.attributes.omega.value !== parseFloat(values.osc_start)) {
     warnings.osc_start = 'Oscillation start angle is different from current omega';
   }
 

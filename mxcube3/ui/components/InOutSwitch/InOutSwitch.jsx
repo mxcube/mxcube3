@@ -5,8 +5,8 @@ import { Label, Button, OverlayTrigger, Popover } from 'react-bootstrap';
 export default class InOutSwitch extends React.Component {
   constructor(props) {
     super(props);
-    this.setIn = this.setIn.bind(this);
-    this.setOut = this.setOut.bind(this);
+    this.setOff = this.setOff.bind(this);
+    this.setOn = this.setOn.bind(this);
     this.onLinkRightClick = this.onLinkRightClick.bind(this);
     this.onOptionsRightClick = this.onOptionsRightClick.bind(this);
   }
@@ -23,18 +23,18 @@ export default class InOutSwitch extends React.Component {
     e.preventDefault();
   }
 
-  setIn() {
+  setOff() {
     if (this.props.onSave !== undefined) {
-      this.props.onSave(this.props.pkey, 'in');
+      this.props.onSave(this.props.pkey, this.props.offText);
     }
 
     this.refs.overlay.hide();
   }
 
 
-  setOut() {
+  setOn() {
     if (this.props.onSave !== undefined) {
-      this.props.onSave(this.props.pkey, 'out');
+      this.props.onSave(this.props.pkey, this.props.onText);
     }
 
     this.refs.overlay.hide();
@@ -76,17 +76,18 @@ export default class InOutSwitch extends React.Component {
 
   render() {
     let msgBgStyle = 'warning';
-    if (this.props.data.value === 1) {
+    if (this.props.data.value === this.props.onText) {
       msgBgStyle = 'success';
-    } else if (this.props.data.value === 0) {
+    } else if (this.props.data.value === this.props.offText) {
       msgBgStyle = 'danger';
     }
 
     let btn = <Button block bsSize="small" disabled>---</Button>;
-    if (this.props.data.value === 0) {
-      btn = <Button block bsSize="small" onClick={this.setIn}>{this.props.offText}</Button>;
-    } else if (this.props.data.value === 1) {
-      btn = <Button block bsSize="small" onClick={this.setOut}>{this.props.onText}</Button>;
+
+    if (this.props.data.value === this.props.onText) {
+      btn = <Button block bsSize="small" onClick={this.setOff}>Set: {this.props.offText}</Button>;
+    } else {
+      btn = <Button block bsSize="small" onClick={this.setOn}>Set: {this.props.onText}</Button>;
     }
 
     const msgLabelStyle = { display: 'block', fontSize: '100%',

@@ -1,0 +1,45 @@
+<?xml version="1.0"?>
+<equipment class="DiffractometerMockup">
+  <username>diffractometer</username>
+  <object role="focus" hwrid="./udiff_phix"></object>
+  <object role="zoom" hwrid="./udiff_zoom"></object>
+  <object role="phi" hwrid="./udiff_omega"></object>
+  <object role="phiy" hwrid="./udiff_phiy"></object>
+  <object role="phiz" hwrid="./udiff_phiz"></object>
+  <object role="sampx" hwrid="./udiff_sampx"></object>
+  <object role="sampy" hwrid="./udiff_sampy"></object>
+  <object role="kappa" hwrid="./udiff_kappa"></object>
+  <object role="kappa_phi" hwrid="./udiff_kappaphi"></object>
+  <object role="beam" hwrid="./beam"></object>
+
+  <object role="backlight" href="./udiff_backlight"/>
+  <object role="backlightswitch" href="./udiff_backlightswitch"/>
+  <object role="frontlight" href="./udiff_frontlight"/>
+  <object role="frontlightswitch" href="./udiff_frontlightswitch"/>
+
+  <object role="beamstop_distance" hwrid="./beamstop_alignment_x"></object>
+
+  <object role="sample_vertical" hwrid="/udiff_sampx"/>
+  <object role="sample_horizontal" hwrid="/udiff_sampy"/>
+
+  <object role="beamstop" href="/beamstop"/>
+  <object role="aperture" href="/aperture"/>
+  <object role="capillary" href="/capillary"/>
+
+  <zoomcentre>{"x":340,"y":250}</zoomcentre>
+  <omega_reference>{"motor_name": "phiz", "position":-0.2224, "camera_axis":"x"}</omega_reference>
+
+  <!-- MD2 -->
+  <!-- <gridDirection>{"fast": (1, 0), "slow": (0, -1)}</gridDirection>  -->
+
+  <!-- use sample_changer or plate to test different sample mounting modes -->
+  <sample_mount_mode>sample_changer</sample_mount_mode>
+  <!-- MD3 -->
+  <grid_direction>{"fast": (0, 1), "slow": (1, 0), "omega_ref": 0}</grid_direction>
+
+  <object role="camera" hwrid="./md_camera"></object>
+  <object role="samplechanger" hwrid="./sc"></object>
+
+  <phaseList>["Transfer","Centring","BeamLocation", "DataCollection"]</phaseList>
+  <headType>MiniKappa</headType>
+</equipment>

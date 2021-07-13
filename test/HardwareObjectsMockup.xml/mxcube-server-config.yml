@@ -10,3 +10,167 @@ server:
 
 mxcube:
   VIDEO_FORMAT: MJPEG
+
+  adapter_properties:
+      # cryo:
+      #   adapts: diffractometer.cryostream
+      #   adapter: CryoAdapter
+      #   signals:
+      #     stateChanged: ignore
+
+  ui_properties:
+    sample_view:
+      id: sample_view
+      components:
+        -
+          label: Omega
+          attribute: omega
+          role: omega
+          step: 90
+          precision: 2
+          suffix: °
+        -
+          label: Kappa
+          attribute: kappa
+          role: kappa
+          step: 0.1
+          precision: 1
+          suffix: "°"          
+        -
+          label: Kappa Phi
+          attribute: kappa_phi
+          role: kappa_phi
+          step: 0.1
+          precision: 1
+          suffix: °          
+        -
+          label: X
+          attribute: phix
+          role: phix
+          step: 0.1
+          precision: 3
+          suffix: mm      
+        -
+          label: Y
+          attribute: phiy
+          role: phiy
+          step: 0.1
+          precision: 3
+          suffix: mm
+        -
+          label: Z
+          attribute: phiz
+          role: phiz
+          step: 0.1
+          precision: 3
+          suffix: mm
+        -
+          label: Samp-X
+          attribute: sampx
+          role: sampx
+          step: 0.1
+          precision: 3
+          suffix: mm
+        -
+          label: Samp-Y
+          attribute: sampy
+          role: sampy
+          step: 0.1
+          precision: 3
+          suffix: mm
+        -
+          label: Sample Horizontal
+          attribute: sampx
+          role: sample_horizontal
+          step: 0.1
+          precision: 3
+          suffix: mm
+        -
+          label: Sample Vertical
+          attribute: sampy
+          role: sample_vertical
+          step: 0.1
+          precision: 3
+          suffix: mm
+        -
+          label: Zoom
+          attribute: zoom
+          role: zoom
+          step: 1
+          precision: 1
+          suffix: mm
+        -
+          label: Focus
+          attribute: sampx
+          role: focus
+          step: 0.1
+          precision: 3
+          suffix: mm
+
+    beamline_setup:
+      id: beamline_setup
+      components:
+        -
+          label: Beamstop
+          attribute: beamstop
+        -
+          label: Capillary
+          attribute: capillary
+        -
+          label: Fast Shutter
+          attribute: fast_shutter
+        - 
+          label: Safety shutter
+          attribute: safety_shutter
+        -
+          label: Detector
+          attribute: detector
+        -
+          label: Energy
+          attribute: energy
+          step: 0.001
+          precision: 4
+          suffix: KeV
+        -
+          label: Resolution
+          attribute: resolution
+          step: 0.001
+          precision: 3
+          suffix: Å
+        -
+          label: Transmission
+          attribute: transmission
+          step: 0.1
+          precision: 1
+          suffix: "%"
+        -
+          label: Cryo
+          attribute: cryo
+          precision: 2
+          suffix: k       
+        -
+          label: Wavelength
+          attribute: energy.wavelength
+          step: 0.01
+          precision: 2
+          suffix: Å
+        -
+          label: Detector
+          attribute: detector_distance
+          step: 0.1
+          precision: 1
+          suffix: mm 
+        -
+          label: Flux
+          attribute: flux
+          precision: 2
+          suffix: ph/s
+          format: expo
+
+
+
+
+
+
+
+    

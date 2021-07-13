@@ -16,10 +16,12 @@ import remoteAccess from './remoteAccess';
 import shapes from './shapes';
 import workflow from './workflow';
 import taskResult from './taskResult';
+import uiproperties from './uiproperties';
 
 const mxcubeReducer = combineReducers({
   login,
   queue,
+  uiproperties,
   sampleGrid,
   sampleChanger,
   sampleChangerMaintenance,

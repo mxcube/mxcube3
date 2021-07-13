@@ -10,31 +10,31 @@ def flush():
 
 
 def init():
-    @server.FLASK_SOCKETIO.on("connect", namespace="/ui_state")
+    @server.flask_socketio.on("connect", namespace="/ui_state")
     @server.ws_restrict
     def connect():
         pass
 
-    @server.FLASK_SOCKETIO.on("disconnect", namespace="/ui_state")
+    @server.flask_socketio.on("disconnect", namespace="/ui_state")
     @server.ws_restrict
     def disconnect():
         pass
 
-    @server.FLASK_SOCKETIO.on("ui_state_get", namespace="/ui_state")
+    @server.flask_socketio.on("ui_state_get", namespace="/ui_state")
     @server.ws_restrict
     def ui_state_get(k):
         k = k.replace("reduxPersist:", "")
         # print 'ui state GET',k,'returning:',STATE[k]
         return json.dumps(mxcube.UI_STATE[k])
 
-    @server.FLASK_SOCKETIO.on("ui_state_rm", namespace="/ui_state")
+    @server.flask_socketio.on("ui_state_rm", namespace="/ui_state")
     @server.ws_restrict
     def ui_state_rm(k):
         k = k.replace("reduxPersist:", "")
         # print 'ui state REMOVE',k
         del mxcube.UI_STATE[k]
 
-    @server.FLASK_SOCKETIO.on("ui_state_set", namespace="/ui_state")
+    @server.flask_socketio.on("ui_state_set", namespace="/ui_state")
     @server.ws_restrict
     def ui_state_update(key_val):
         key, val = key_val
@@ -49,7 +49,7 @@ def init():
             include_self=False 
         )
 
-    @server.FLASK_SOCKETIO.on("ui_state_getkeys", namespace="/ui_state")
+    @server.flask_socketio.on("ui_state_getkeys", namespace="/ui_state")
     @server.ws_restrict
     def ui_state_getkeys(*args):
         return ["reduxPersist:" + k for k in mxcube.UI_STATE.keys()]

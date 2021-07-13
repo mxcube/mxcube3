@@ -17,10 +17,15 @@ from logging.handlers import TimedRotatingFileHandler
 from mxcubecore import HardwareRepository as hwr
 from mxcubecore import removeLoggingHandlers
 from mxcubecore.HardwareObjects import (QueueManager, queue_entry)
+from mxcubecore.ConvertUtils import make_table
 
 from mxcube3.video import streaming_processes
 from mxcube3.logging_handler import MX3LoggingHandler
+from mxcube3.core.adapter.utils import get_adapter_cls_from_hardware_object
+from mxcube3.core.adapter.adapter_base import AdapterBase
 
+
+removeLoggingHandlers()
 
 class MXCUBECore():
     # The HardwareRepository object
@@ -30,11 +35,13 @@ class MXCUBECore():
     # Initialized by the init function
 
     # BeamlineSetup
-    beamline = None
+    beamline_ho = None
     # XMLRPCServer
     actions = None
     # Plotting
     plotting = None
+
+    adapter_dict = {}
 
     @staticmethod
     def get_hwo(obj, name):
@@ -90,7 +97,7 @@ class MXCUBECore():
         sys.exit(-1)
 
     @staticmethod
-    def init(hwdir):
+    def init(app, hwdir):
         """
         Initializes the HardwareRepository with XML files read from hwdir.
 
@@ -105,21 +112,20 @@ class MXCUBECore():
 
         :return: None
         """
+        from mxcube3.core.adapter.beamline_adapter import BeamlineAdapter
+
         fname = os.path.dirname(__file__)
         hwr.add_hardware_objects_dirs([os.path.join(fname, "HardwareObjects")])
         hwr.init_hardware_repository(os.path.abspath(os.path.expanduser(hwdir)))
         _hwr = hwr.get_hardware_repository()
         _hwr.connect()
-        HWR = _hwr
 
+        MXCUBECore.HWR = _hwr
+       
         try:
-            MXCUBECore.beamline = hwr.beamline
-
-            qm = QueueManager.QueueManager("MXCuBE3")
-
-            from mxcube3.core import qutils
-
-            qutils.init_signals(hwr.beamline.queue_model)
+            MXCUBECore.beamline_ho = hwr.beamline
+            MXCUBECore.beamline = BeamlineAdapter(hwr.beamline, MXCUBEApplication)
+            MXCUBECore.adapt_hardware_objects(app)
 
         except Exception:
             msg = "Could not initialize one or several hardware objects, "
@@ -129,6 +135,87 @@ class MXCUBECore():
             MXCUBECore.exit_with_error(msg)
 
 
+    @staticmethod
+    def _import_adapter_cls(adapter_cls_str):
+        adapter_mod = importlib.import_module(
+            f"mxcube3.core.adapter.{utils.str_to_snake(adapter_cls_str)}"
+        )
+
+        return getattr(adapter_mod, adapter_cls_str)
+
+    @staticmethod
+    def _get_object_from_id(_id):
+        if _id in MXCUBECore.adapter_dict:
+            return MXCUBECore.adapter_dict[_id]["adapter"]
+
+    @staticmethod
+    def _get_adapter_id(ho):
+        try:
+            if ho.username != None:
+                _id = ho.username
+            else:
+                _id = ho.name()[1:]
+        except:
+            _id = ho.name()[1:]
+
+        return _id.replace(" ", "_").lower()
+
+    
+    @staticmethod
+    def _add_adapter(_id, adapter_cls, ho, adapter_instance):
+        if _id not in MXCUBECore.adapter_dict:
+            MXCUBECore.adapter_dict[_id] = {
+                "id": str(_id),
+                "adapter_cls": adapter_cls.__name__,
+                "ho": ho.name()[1:],
+                "adapter": adapter_instance
+            }
+        else:
+            logging.getLogger("MX3.HWR").warning(f"Skipping {ho.name()}, id: {_id} already exists" % (ho_name, _id))
+
+
+    @staticmethod
+    def get_adapter(_id):
+        return MXCUBECore._get_object_from_id(_id)
+
+    def _get_attr_from_path(self, obj, attr):
+        """Recurses through an attribute chain to get the attribute."""
+        return reduce(getattr, attr.split("."), obj)        
+
+    @staticmethod
+    def adapt_hardware_objects(app):
+        adapter_config = app.CONFIG.app.adapter_properties or []
+
+        for ho_name in MXCUBECore.HWR.hardware_objects:
+            # Go through all hardware objects exposed by mxcubecore
+            # hardware reposiotry set id to username if its deinfed
+            # use the name otherwise (file name without extension)
+            ho = MXCUBECore.HWR.get_hardware_object(ho_name)
+
+            _id = MXCUBECore._get_adapter_id(ho)
+
+            # Try to use the interface exposed by abstract classes in mxcubecore to adapt
+            # the object
+            adapter_cls = get_adapter_cls_from_hardware_object(ho)
+
+            if adapter_cls:
+                try:
+                    adapter_instance = adapter_cls(ho, _id, app, **dict(adapter_config))
+                    logging.getLogger("MX3.HWR").info("Added adapter for %s" % _id)
+                except:
+                    logging.getLogger("MX3.HWR").exception("Could not add adapter for %s" % _id)
+                    logging.getLogger("MX3.HWR").info("%s not available" % _id)
+                    adapter_cls = AdapterBase
+                    adapter_instance = AdapterBase(None, _id, app)
+
+                MXCUBECore._add_adapter(_id, adapter_cls, ho, adapter_instance)
+            else:
+                logging.getLogger("MX3.HWR").info("No adapter for %s" % _id)
+
+        print(make_table(
+            ["Name", "Adapter", "HO filename"],
+            [[item["id"], item["adapter_cls"], item["ho"]] for item in MXCUBECore.adapter_dict.values()]
+        ))
 
 class MXCUBEApplication():
     # Below variables used for internal application state
@@ -205,6 +292,7 @@ class MXCUBEApplication():
 
         :return None:
         """
+        logging.getLogger("MX3.HWR").info("Starting MXCuBE3...")
         from mxcube3.core import utils
 
         MXCUBEApplication.server = server
@@ -212,10 +300,7 @@ class MXCUBEApplication():
         MXCUBEApplication.TIMEOUT_GIVES_CONTROL = ra_timeout
         MXCUBEApplication.CONFIG = cfg
 
-        MXCUBEApplication.init_logging(log_fpath)
-        logging.getLogger("MX3.HWR").info("Starting MXCuBE3...")
-
-        MXCUBEApplication.mxcubecore.init(hwr_xml_dir)
+        MXCUBEApplication.mxcubecore.init(MXCUBEApplication, hwr_xml_dir)
 
         if video_device:
             MXCUBEApplication.init_sample_video(video_device)
@@ -223,15 +308,17 @@ class MXCUBEApplication():
         MXCUBEApplication.init_signal_handlers()
 
         utils.enable_snapshots(
-            MXCUBEApplication.mxcubecore.beamline.collect,
-            MXCUBEApplication.mxcubecore.beamline.diffractometer,
-            MXCUBEApplication.mxcubecore.beamline.sample_view
+            MXCUBEApplication.mxcubecore.beamline_ho.collect,
+            MXCUBEApplication.mxcubecore.beamline_ho.diffractometer,
+            MXCUBEApplication.mxcubecore.beamline_ho.sample_view
         )
 
         atexit.register(MXCUBEApplication.app_atexit)
 
         # Install server-side UI state storage
         MXCUBEApplication.init_state_storage()
+        MXCUBEApplication.init_logging(log_fpath)
+
 
     @staticmethod
     def init_sample_video(video_device):
@@ -247,7 +334,7 @@ class MXCUBEApplication():
         :return: None
         """
         try:
-            MXCUBEApplication.mxcubecore.beamline.sample_view.camera.start_streaming()
+            MXCUBEApplication.mxcubecore.beamline_ho.sample_view.camera.start_streaming()
         except Exception as ex:
             msg = "Could not initialize video, error was: "
             msg += str(ex)
@@ -262,6 +349,12 @@ class MXCUBEApplication():
         from mxcube3.core import beamlineutils
         from mxcube3.core import sviewutils
         from mxcube3.core import scutils
+        from mxcube3.core import qutils
+
+        try:
+            qutils.init_signals(MXCUBEApplication.mxcubecore.beamline_ho.queue_model)
+        except Exception:
+            sys.excepthook(*sys.exc_info())
 
         try:
             sviewutils.init_signals()
@@ -299,7 +392,7 @@ class MXCUBEApplication():
             log_file_handler.setFormatter(log_formatter)
 
         root_logger = logging.getLogger()
-        root_logger.setLevel(logging.DEBUG)
+        #root_logger.setLevel(logging.INFO)
         root_logger.addHandler(NullHandler())
 
         custom_log_handler = MX3LoggingHandler(
@@ -340,6 +433,32 @@ class MXCUBEApplication():
         state_storage.init()
 
     @staticmethod
+    def get_ui_properties():
+        # Add type information to each component retrieved from the beamline adapter 
+        # (either via config or via mxcubecore.beamline)
+        for item_name, item_data in MXCUBEApplication.CONFIG.app.ui_properties.items():
+            for component_data in item_data["components"]:
+                try:
+                    mxcore = MXCUBEApplication.mxcubecore
+                    adapter = mxcore.get_adapter(component_data["attribute"])
+                    adapter_cls_name = type(adapter).__name__
+                    value_type = adapter.value_type
+                except AttributeError as ex:
+                    adapter_cls_name = ""
+                    value_type = ""
+                else:
+                    adapter_cls_name = adapter_cls_name.replace("Adapter", "")
+    
+                if not "object_type" in component_data:
+                    component_data["object_type"] = adapter_cls_name
+                
+                if not "value_type" in component_data:
+                    component_data["value_type"] = value_type
+
+
+        return MXCUBEApplication.CONFIG.app.ui_properties
+
+    @staticmethod
     def save_settings():
         """
         Saves all application wide variables to disk, stored-mxcube-session.json
@@ -347,7 +466,7 @@ class MXCUBEApplication():
 
         from mxcube3.core import qutils
 
-        queue = qutils.queue_to_dict(MXCUBEApplication.mxcubecore.beamline.queue_model.get_model_root())
+        queue = qutils.queue_to_dict(MXCUBEApplication.mxcubecore.beamline_ho.queue_model.get_model_root())
 
         # For the moment not storing USERS
 
